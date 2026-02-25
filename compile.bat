@@ -51,7 +51,7 @@ echo %YELLOW%Compiling %INPUT%   %RED%
 
 REM ---- Detect file type ----
 if /I "%EXT%"==".c" (
-    "%GCC%" "%INPUT%" -o "%OUTPUT%.exe"
+    "%GCC%" -std=c99 "%INPUT%" -o "%OUTPUT%.exe"
 ) else if /I "%EXT%"==".cpp" (
     "%GPP%" "%INPUT%" -o "%OUTPUT%.exe"
 ) else (
@@ -94,6 +94,7 @@ if exist "%OUTPUT%.exe" (
 )
 
 pause
+
 
 
 
