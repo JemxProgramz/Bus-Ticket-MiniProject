@@ -78,7 +78,7 @@ void inputPassword(char *pass){
         ch=getch();
         if(ch==13){ pass[i]='\0'; break; }
         else if(ch==8 && i>0){ i--; printf("\b \b"); }
-        else{ pass[i++]=ch; printf("*"); }
+        else if(i<49){ pass[i++]=ch; printf("*"); } // Prevent buffer overflow (max 49 chars for null terminator)
     }
 }
 
@@ -89,7 +89,7 @@ void registerUser(){
     header("USER REGISTRATION");
 
     printf("Username : ");
-    scanf("%s",u.username);
+    scanf("%49s",u.username);
 
     printf("Password : ");
     inputPassword(u.password);
@@ -113,7 +113,7 @@ int userLogin(){
     header("USER LOGIN");
 
     printf("Username : ");
-    scanf("%s",username);
+    scanf("%49s",username);
 
     printf("Password : ");
     inputPassword(password);
@@ -145,7 +145,7 @@ int adminLogin(){
     header("ADMIN LOGIN");
 
     printf("Username : ");
-    scanf("%s",u);
+    scanf("%19s",u);
 
     printf("Password : ");
     inputPassword(p);
@@ -168,11 +168,11 @@ void addBus(){
 
     header("ADD BUS");
 
-    printf("Bus No        : "); scanf("%d",&b.busNo);
-    printf("Source        : "); scanf("%s",b.source);
-    printf("Destination   : "); scanf("%s",b.destination);
-    printf("Total Seats   : "); scanf("%d",&b.totalSeats);
-    printf("Adult Fare    : "); scanf("%f",&b.fare);
+    printf("Bus No        : "); if(scanf("%d",&b.busNo)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); fclose(fp); return; }
+    printf("Source        : "); scanf("%49s",b.source);
+    printf("Destination   : "); scanf("%49s",b.destination);
+    printf("Total Seats   : "); if(scanf("%d",&b.totalSeats)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); fclose(fp); return; }
+    printf("Adult Fare    : "); if(scanf("%f",&b.fare)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); fclose(fp); return; }
 
     fwrite(&b,sizeof(b),1,fp);
     fclose(fp);
@@ -205,8 +205,8 @@ void searchBus(){
 
     header("SEARCH BUS");
 
-    printf("Enter Source      : "); scanf("%s",src);
-    printf("Enter Destination : "); scanf("%s",dest);
+    printf("Enter Source      : "); scanf("%49s",src);
+    printf("Enter Destination : "); scanf("%49s",dest);
 
     FILE *fp=fopen("buses.dat","rb");
     if(fp==NULL){ printf("No buses!\n"); system("pause"); return; }
@@ -304,7 +304,7 @@ void deleteBus(){
     header("DELETE BUS");
 
     printf("Enter Bus No to Delete : ");
-    scanf("%d",&busNo);
+    if(scanf("%d",&busNo)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); return; }
 
     if(hasBooking(busNo)){
         color(12);
@@ -345,7 +345,7 @@ int processPayment(float amount){
     printf("\nTotal Amount: %.2f\n",amount);
     printf("1. Card\n2. UPI\n3. Cash\n");
     printf("Enter Choice : ");
-    scanf("%d",&ch);
+    if(scanf("%d",&ch)!=1){ while(getchar()!='\n'); return 0; }
 
     Sleep(1000);
 
@@ -366,7 +366,7 @@ void bookTicket(){
     header("BOOK TICKET");
 
     printf("Enter Bus No : ");
-    scanf("%d",&busNo);
+    if(scanf("%d",&busNo)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); return; }
 
     FILE *fp=fopen("buses.dat","rb");
     if(fp==NULL){ printf("No buses!\n"); system("pause"); return; }
@@ -379,11 +379,11 @@ void bookTicket(){
     if(!found){ printf("Bus Not Found!\n"); system("pause"); return; }
 
     char date[20],timeStr[10];
-    printf("Travel Date (DD/MM/YYYY) : "); scanf("%s",date);
-    printf("Travel Time (HH:MM)      : "); scanf("%s",timeStr);
+    printf("Travel Date (DD/MM/YYYY) : "); scanf("%19s",date);
+    printf("Travel Time (HH:MM)      : "); scanf("%9s",timeStr);
 
     printf("Number of Passengers (Max 10) : ");
-    scanf("%d",&passengers);
+    if(scanf("%d",&passengers)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); return; }
 
     if(passengers<1 || passengers>MAX_PASS){
         printf("Invalid number!\n");
@@ -405,7 +405,8 @@ void bookTicket(){
             header("BOOK TICKET - Passenger Input");
             showSeatLayout(busNo, b.totalSeats, date, booked);
             printf("Passenger %d of %d\n", i+1, passengers);
-            printf("Seat No : "); scanf("%d",&tickets[i].seatNo);
+            printf("Seat No : ");
+            if(scanf("%d",&tickets[i].seatNo)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); Sleep(800); continue; }
             if(tickets[i].seatNo < 1 || tickets[i].seatNo > b.totalSeats){
                 printf("Invalid seat number!\n"); Sleep(800); continue;
             }
@@ -418,9 +419,10 @@ void bookTicket(){
             chosen=1;
         }
 
-        printf("Name    : "); scanf("%s",tickets[i].name);
-        printf("Age     : "); scanf("%d",&tickets[i].age);
-        printf("Phone   : "); scanf("%s",tickets[i].phone);
+        printf("Name    : "); scanf("%49s",tickets[i].name);
+        printf("Age     : ");
+        if(scanf("%d",&tickets[i].age)!=1){ while(getchar()!='\n'); printf("Invalid age!\n"); i--; continue; }
+        printf("Phone   : "); scanf("%19s",tickets[i].phone);
 
         if(tickets[i].age < 3){
             strcpy(tickets[i].category,"Infant");
@@ -509,7 +511,7 @@ void cancelTicket(){
 
     header("CANCEL TICKET");
     printf("Enter Ticket ID : ");
-    scanf("%d",&id);
+    if(scanf("%d",&id)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); return; }
 
     FILE *fp=fopen("tickets.dat","rb");
     FILE *temp=fopen("temp.dat","wb");
@@ -545,7 +547,7 @@ void adminPanel(){
         printf("4. View All Bookings\n");
         printf("5. Logout\n");
         printf("\nEnter Choice : ");
-        scanf("%d",&ch);
+        if(scanf("%d",&ch)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); continue; }
 
         switch(ch){
             case 1: addBus(); break;
@@ -570,7 +572,7 @@ void userPanel(){
         printf("5. Cancel Ticket\n");
         printf("6. Logout\n");
         printf("\nEnter Choice : ");
-        scanf("%d",&ch);
+        if(scanf("%d",&ch)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); continue; }
 
         switch(ch){
             case 1: viewBuses(); break;
@@ -598,7 +600,7 @@ int main(){
         printf("3. User Login\n");
         printf("4. Exit\n");
         printf("\nEnter Choice : ");
-        scanf("%d",&choice);
+        if(scanf("%d",&choice)!=1){ while(getchar()!='\n'); printf("Invalid input!\n"); system("pause"); continue; }
 
         switch(choice){
             case 1: if(adminLogin()) adminPanel(); break;
